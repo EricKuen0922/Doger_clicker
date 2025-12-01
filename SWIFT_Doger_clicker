@@ -1,0 +1,127 @@
+import SwiftUI
+
+struct ContentView: View {
+    @State var num = 0
+    @State private var showRewardCircle = false
+    @State private var rewardColor: Color = .white
+    @State private var colorCounts: [Color: Int] = [:]
+    
+    private let colorOptions:[(color: Color, probability: Int)] = [
+        (.pink, 50),
+        (.green, 30),
+        (.blue, 10),
+        (.purple, 6),
+        (.black, 3),
+        (.orange, 1)
+    ]
+    
+    
+    var body: some View {
+        VStack {
+            // 3. The "Stats Board" in Top Right Corner
+            VStack(alignment: .leading, spacing: 5) {
+                Text("Prob.|Count")
+                    .font(.caption)
+                    .bold()
+                    .underline()
+                
+                ForEach(colorOptions, id: \.color) { option in
+                    HStack {
+                        // Small color circle
+                        Circle()
+                            .fill(option.color)
+                            .frame(width: 10, height: 10)
+                            .overlay(Circle().stroke(.black, lineWidth: 1))
+                        
+                        // Text: "50%: 12"
+                        Text("\(option.probability)% : \(colorCounts[option.color, default: 0])")
+                            .font(.system(size: 12, weight: .bold, design: .monospaced))
+                    }
+                }
+            }
+            .padding(10)
+            .background(.regularMaterial) // Glass effect background
+            .cornerRadius(10)
+            .padding(.leading, 310) // Margin from the edge of screen
+            Text("There are \(num) click")
+                .font(.system(size: 30, weight: .heavy, design: .monospaced))
+            
+                .padding()
+            if showRewardCircle && rewardColor != .clear{
+                Circle()
+                    .fill(rewardColor)
+                    .frame(width: 120, height: 120)
+                    .animation(.easeInOut(duration: 1), value: showRewardCircle)
+                
+                
+            }
+            
+            HStack{
+                Button("+"){
+                    num = num + 1
+                    checkForReward()
+                }
+                .font(.largeTitle)
+                .padding()
+                .foregroundColor(.cyan)
+                .border(.black, width: 3)
+                .padding(.horizontal, 30)
+                
+                
+                Button("Restart"){
+                    num = 0
+                    showRewardCircle = false
+                }
+                .font(.largeTitle)
+                .padding()
+                .foregroundColor(.cyan)
+                .border(.black, width: 3)
+                
+            }
+            
+        }
+        .background(Image("dogeG")
+            .resizable()
+            .frame(width: 500 ,height: 1000 ))
+        
+        
+    } 
+    
+    
+
+    // Check if count is multiple of 10 and trigger reward
+    private func checkForReward() {
+        // Trigger only on multiples of 10
+        guard num % 10 == 0 && num > 0 else { return }
+        
+        let randomValue = Int.random(in: 1...100)
+        var cumulativeProbability = 0
+        
+        for option in colorOptions {
+            cumulativeProbability += option.probability
+            
+            if randomValue <= cumulativeProbability {
+                rewardColor = option.color
+                
+   
+                colorCounts[option.color, default: 0] += 1
+                
+                break
+            }
+        }
+        
+        showRewardCircle = true
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            withAnimation {
+                showRewardCircle = false
+            }
+        }
+    }
+}
+
+
+
+#Preview{
+    ContentView()
+}
